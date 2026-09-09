@@ -16,12 +16,42 @@
 
   The unconditional invariant: the TelecomEngineeringTechniciansAdvisor can never
   directly commit a record the TelecomEngineeringTechniciansGovernor refuses —
-  every commit-record! call is gated behind `:decide`."
+  every commit-record! call is gated behind `:decide`.
+
+  Two things moved out of this namespace and one moved in.
+
+  The `:decide` routing rule now lives in `telecomtech.phase`. Inline, it
+  could only be exercised by building and running a graph, so the rule that
+  decides whether a test result is written, held, or sent to a human had no
+  test of its own.
+
+  Ledger writing now goes through `telecomtech.ledger`, which chains each
+  entry to its predecessor. The store held a plain vector and the README
+  called it append-only, but any prefix or permutation of it was
+  indistinguishable from the real thing.
+
+  What moved in is the approval provenance. Measured on the pre-change tree,
+  a service restoral approved by a human and a routine test approved
+  automatically both left `{:disposition :commit ...}` with no field telling
+  them apart — on the one operation whose premise is that the link already
+  failed. `:commit` now reads the disposition it was routed from and records
+  `:human` or `:actor` explicitly."
   (:require [langgraph.graph :as g]
             [langgraph.checkpoint :as cp]
             [telecomtech.advisor :as advisor]
             [telecomtech.governor :as governor]
+            [telecomtech.ledger :as ledger]
+            [telecomtech.phase :as phase]
             [telecomtech.store :as store]))
+
+(defn- append-chained!
+  "Append `m` to the store's ledger as the next CHAINED entry. Reads the
+  current ledger so the new entry commits to both its content and its
+  position. Returns the entry."
+  [store m]
+  (let [e (ledger/entry (vec (store/ledger store)) m)]
+    (store/append-ledger! store e)
+    e))
 
 (defn build-graph
   "Build a compiled TelecomEngineeringTechniciansActor graph. `store` implements
@@ -53,24 +83,24 @@
                         :audit [{:node :govern :verdict v}]})))
       (g/add-node :decide
                    (fn [{:keys [verdict]}]
-                     {:disposition (cond
-                                     (:hard? verdict) :hold
-                                     (:escalate? verdict) :request-approval
-                                     :else :commit)}))
+                     {:disposition (phase/of-verdict verdict)}))
       (g/add-node :request-approval (fn [s] s))
       (g/add-node :commit
-                   (fn [{:keys [request proposal]}]
+                   (fn [{:keys [request proposal disposition]}]
                      (let [record {:client-id (:client-id request)
                                     :op (:op proposal)
                                     :link-id (:link-id proposal)
-                                    :payload proposal}]
+                                    :payload proposal}
+                           approved-by (if (phase/approved-commit? disposition)
+                                         :human
+                                         :actor)]
                        (store/commit-record! store record)
-                       (store/append-ledger! store {:disposition :commit :record record})
+                       (append-chained! store (ledger/commit-entry record approved-by))
                        {:record record
-                        :audit [{:node :commit :record record}]})))
+                        :audit [{:node :commit :record record :approved-by approved-by}]})))
       (g/add-node :hold
                    (fn [{:keys [verdict]}]
-                     (store/append-ledger! store {:disposition :hold :verdict verdict})
+                     (append-chained! store (ledger/hold-entry verdict))
                      {:audit [{:node :hold :verdict verdict}]}))
       (g/set-entry-point :intake)
       (g/add-edge :intake :advise)
