@@ -25,7 +25,7 @@ Cognitive scope only: this actor approves REMOTE test-result records
 | `telecomtech.ledger` | hash-chained append-only audit entries, and their verification |
 | `telecomtech.store` | the SSoT: clients, links, records, ledger |
 | `telecomtech.actor` | the wired StateGraph |
-| `telecomtech.sim` | the governed-scenario harness (`clojure -M:sim`) |
+| `telecomtech.sim` | the governed-scenario harness (`kbb -M:sim`) |
 
 ## What the governor refuses
 
