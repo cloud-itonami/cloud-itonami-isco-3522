@@ -1,5 +1,5 @@
 (ns telecomtech.actor-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [telecomtech.actor :as actor]
             [telecomtech.ledger :as ledger]
             [telecomtech.store :as store]))

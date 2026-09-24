@@ -1,5 +1,5 @@
 (ns telecomtech.facts-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [telecomtech.facts :as facts]))
 
 (deftest usable-attenuation-rejects-what-cannot-be-compared
