@@ -1,6 +1,6 @@
 (ns telecomtech.ledger-test
   (:require [kotoba.lang.text :as str]
-            [clojure.test :refer [deftest is testing]]
+            [kotoba.test :refer [deftest is testing]]
             [telecomtech.ledger :as led]))
 
 (defn- three []

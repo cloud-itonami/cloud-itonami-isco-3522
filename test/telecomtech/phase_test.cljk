@@ -1,5 +1,5 @@
 (ns telecomtech.phase-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [telecomtech.phase :as phase]))
 
 (deftest hard-outranks-escalate

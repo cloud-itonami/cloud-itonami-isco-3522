@@ -1,5 +1,5 @@
 (ns telecomtech.sim-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [telecomtech.phase :as phase]
             [telecomtech.sim :as sim]))
 
