@@ -1,0 +1,33 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:physics` runs it.
+;;
+;; README: telecommunications engineering technicians (ISCO 3522) are a
+;; Wave-0 cognitive occupation; the README keeps physical plant work
+;; (climbing, splicing, tower work) out of the actor. blueprint.edn declares
+;; :itonami.blueprint/robotics true. These cases declare only the indoor
+;; exchange-room edge: lifting a battery block of the DC plant onto its
+;; shelf, and carrying spares from the store to the equipment room.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isco-3522"
+ :cases
+ [{:id :battery-block-to-shelf
+   :kind :manipulator
+   :procedure "arm lifts a sealed lead-acid battery block from the cart onto the DC-plant battery shelf"
+   :params {:l1-m 0.60 :l2-m 0.55 :m1-kg 8.0 :m2-kg 6.0
+            :from [0.70 0.10] :to [0.30 0.80] :duration-s 3.0 :steps 600}
+   :sweep {:param :payload-kg :values [5.0 10.0 15.0 20.0 30.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 150.0 :basis "estimate: continuous shoulder torque of a ~10 kg-class collaborative arm"}
+   :boundary {:lo 0.5 :hi 60.0}}
+  {:id :spares-to-equipment-room
+   :kind :transport
+   :procedure "robot carries line cards and spares from the store room to the equipment room of the exchange"
+   :params {:mass-kg 50.0 :payload-kg 30.0 :v-max-mps 1.0 :a-max-mps2 0.5
+            :brake-decel-mps2 0.8 :drive-force-n 120.0 :crr 0.02
+            :cog-height-m 0.55 :support-half-length-m 0.25}
+   :sweep {:param :distance-m :values [20.0 50.0 100.0 150.0 250.0]}
+   :quantity :cycle-time-s
+   :limit {:max 180.0 :basis "estimate: a spare should reach the rack within 3 minutes inside a fault-repair window"}
+   :boundary {:lo 5.0 :hi 600.0}}]}
